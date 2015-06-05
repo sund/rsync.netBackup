@@ -1,0 +1,12 @@
+###
+## Set account, remote server, and ssh key location
+#
+rsyncUSER=""
+rsyncSERVER=""
+rsyncSSHKEY=""
+
+###
+## Set backup folder (local and remote pairs) and other settings here.
+#
+remoteDestination=""
+localSource=""
