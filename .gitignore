@@ -1,5 +1,5 @@
 ## files that shouldn't be synced
-auto-gitlab-backup.conf
+rsync.netBackup.conf
 *~
 
 .DS_Store
