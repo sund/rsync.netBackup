@@ -1,0 +1,4 @@
+## just to be sure
+## exclude .git and .DS_Store
+.git/
+.DS_Store
