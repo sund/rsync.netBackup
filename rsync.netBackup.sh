@@ -21,7 +21,7 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 OSNAME=`uname -s` #
 PDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 confFile="$PDIR/rsync.netBackup.conf"
-excludeFile="excludeFiles.txt"
+excludeFile="$PDIR/excludeFiles.txt"
 
 ###
 ## Functions
@@ -40,9 +40,9 @@ rsyncConnection() {
 rsyncUP() {
 # rsync up with specific key
     echo =============================================================
-    echo -e "Start rsync to \n$rsyncUSER:$rsyncSERVER\n$rsyncSSHKEY"
-    echo "rsync -raz --verbose $excludeLIST $sshKeyUsage $localSource/ $rsyncUSER@$rsyncSERVER:$remoteDestination/"
-    rsync -raz --verbose "$excludeLIST" "$sshKeyUsage" "$localSource/" "$rsyncUSER@$rsyncSERVER:$remoteDestination/"
+    echo -e "Start rsync to \n$rsyncUSER@$rsyncSERVER\n$rsyncSSHKEY"
+    rsync -raz --verbose --exclude-from=$excludeFile $localSource/ "$rsyncUSER"@"$rsyncSERVER":"$remoteDestination"
+    echo =============================================================
 }
 
 rsyncQuota() {
@@ -50,8 +50,8 @@ rsyncQuota() {
 	if [[ $checkQuota == "true" || $checkQuota = 1 ]]
 	then
 	    echo =============================================================
-	    echo -e "Quota check: \n$remoteUser@$remoteServer:$remoteModule\nwith key\n"
-		ssh -p $remotePort -i $sshKeyPath $remoteUser@$remoteServer "quota"
+	    echo -e "Quota check: \n$rsyncUSER@$rsyncSERVER:$remoteDestination"
+		ssh $sshKeyQuota "$rsyncUSER"@"$rsyncSERVER" "quota"
 	    echo =============================================================
 
 	fi
@@ -121,6 +121,7 @@ else
   echo -n "config supplied valid ssh key "
   echo $rsyncSSHKEY
   export sshKeyUsage="-e ssh -i $sshKeyPath"
+  export sshKeyQuota="-i $sshKeyPath"
 fi
 
 #check account creds
@@ -139,10 +140,8 @@ fi
 # what type/kind of host are we on
 #determineOS
 
-#Rsync it up. fixing issues with local files also synced.
-#rsync -raz --verbose /Users/sund/Desktop/FOO/  8326@usw-s008.rsync.net:Backups/FOO/
-echo rsync -raz --verbose  --exclude-from=$excludeFile $localSource/ "$rsyncUSER"@"$rsyncSERVER":"$remoteDestination"
-rsync -raz --verbose  --exclude-from=$excludeFile $localSource/ "$rsyncUSER"@"$rsyncSERVER":"$remoteDestination"
+#Rsync it up.
+rsyncUP
 
 # size it
 rsyncQuota
