@@ -21,7 +21,7 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 OSNAME=`uname -s` #
 PDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 confFile="$PDIR/rsync.netBackup.conf"
-
+excludeFile="excludeFiles.txt"
 
 ###
 ## Functions
@@ -37,15 +37,16 @@ rsyncConnection() {
   ssh $rsyncSERVER -l $rsyncUSER -T ls > /dev/null
 }
 
-rsyncKey() {
+rsyncUP() {
 # rsync up with specific key
     echo =============================================================
-    echo -e "Start rsync to \n$remoteServer:$remoteDest\nwith specific key\n"
-    rsync -Cavz --delete-after -e "ssh -i $sshKeyPath -p$remotePort" $gitRakeBackups/ $remoteUser@$remoteServer:$remoteDest
+    echo -e "Start rsync to \n$rsyncUSER:$rsyncSERVER\n$rsyncSSHKEY"
+    echo "rsync -raz --verbose $excludeLIST $sshKeyUsage $localSource/ $rsyncUSER@$rsyncSERVER:$remoteDestination/"
+    rsync -raz --verbose "$excludeLIST" "$sshKeyUsage" "$localSource/" "$rsyncUSER@$rsyncSERVER:$remoteDestination/"
 }
 
-sshQuotaKey() {
-#quota check: with a key remoteServer, run the quota command
+rsyncQuota() {
+#quota check
 	if [[ $checkQuota == "true" || $checkQuota = 1 ]]
 	then
 	    echo =============================================================
@@ -58,6 +59,7 @@ sshQuotaKey() {
 
 printScriptver() {
 	# print the most recent tag
+  echo =============================================================
 	echo "This is $0"
   version=$(git describe --abbrev=0 --tags 2>/dev/null)
   if [ $? -eq 0 ]
@@ -79,6 +81,23 @@ case "$OSNAME" in
 esac
 }
 
+printVars() {
+  echo =============================================================
+  echo          ============== Variables ================
+  echo "conf file -->" $confFile
+  echo "remote dest -->" $remoteDestination
+  echo "local source -->" $localSource
+  echo "exclude files -->" $excludeLIST
+  if [ -z "$rsyncUSER" ]; then echo "rsyncUSER is unset"; else echo "rsyncUSER is set to '$rsyncUSER'"; fi
+  if [ -z "$rsyncSERVER" ]; then echo "rsyncSERVER is unset"; else echo "rsyncSERVER is set to '$rsyncSERVER'"; fi
+  if [ -z "$rsyncSSHKEY" ]; then echo "rsyncSSHKEY is unset"; else echo "rsyncSSHKEY is set to '$rsyncSSHKEY'"; fi
+  echo =============================================================
+}
+
+timeTrap() {
+  trap times EXIT
+}
+
 ###
 ## Git'r done
 #
@@ -97,17 +116,15 @@ fi
 if [[ -z "$rsyncSSHKEY" ]] # if var is NOT empty
 then
   echo "using default key"
+  export sshKeyUsage=""
 else
   echo -n "config supplied valid ssh key "
   echo $rsyncSSHKEY
+  export sshKeyUsage="-e ssh -i $sshKeyPath"
 fi
 
-if [ -z "$rsyncUSER" ]; then echo "rsyncUSER is unset"; else echo "rsyncUSER is set to '$rsyncUSER'"; fi
-if [ -z "$rsyncSERVER" ]; then echo "rsyncSERVER is unset"; else echo "rsyncSERVER is set to '$rsyncSERVER'"; fi
-if [ -z "$rsyncSSHKEY" ]; then echo "rsyncSSHKEY is unset"; else echo "rsyncSSHKEY is set to '$rsyncSSHKEY'"; fi
-
-# check account creds
-if [ -z "$rsyncUSER" ] && [ -z "$rsyncSERVER" ] && [ -e $rsyncSSHKEY -a -r $rsyncSSHKEY ]
+#check account creds
+if [ -n "${rsyncUSER}" ] && [ -n "${rsyncSERVER}" ]
   then
   rsyncConnection
 else
@@ -116,8 +133,19 @@ else
   exit 1
 fi
 
+## for debugging purposes
+#printVars
+
 # what type/kind of host are we on
-determineOS
+#determineOS
+
+#Rsync it up. fixing issues with local files also synced.
+#rsync -raz --verbose /Users/sund/Desktop/FOO/  8326@usw-s008.rsync.net:Backups/FOO/
+echo rsync -raz --verbose  --exclude-from=$excludeFile $localSource/ "$rsyncUSER"@"$rsyncSERVER":"$remoteDestination"
+rsync -raz --verbose  --exclude-from=$excludeFile $localSource/ "$rsyncUSER"@"$rsyncSERVER":"$remoteDestination"
+
+# size it
+rsyncQuota
 
 # Print version
 printScriptver
@@ -125,4 +153,7 @@ printScriptver
 ###
 ## Exit gracefully
 #
+## for debugging purposes
+#timeTrap
+
 exit 0
