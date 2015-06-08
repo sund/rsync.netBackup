@@ -6,6 +6,11 @@ rsyncSERVER=""
 rsyncSSHKEY=""
 
 ###
+## global options
+#
+checkQuota="0" # print quota report after all is done. 1 is enabled
+
+###
 ## Set backup folder (local and remote pairs) and other settings here.
 #
 remoteDestination=""
