@@ -35,16 +35,54 @@ checkSize() {
     echo
 }
 
+sectionRsyncVars() {
+  echo Section list as string: ${SectionList[@]}
+  echo Total Sections: $sectionCount
+  while [ "$index" -lt "$sectionCount" ]; do
+    echo -e "index: $index\tvalue: ${SectionList[$index]}"
+    let "index++"
+  done
+  echo "---"
+}
+
+sectionRsync() {
+  SectionList=(`echo ${INI__ALL_SECTIONS}`)
+  sectionCount=${#SectionList[@]}
+  index=0
+
+  # for troubleshooting
+  sectionRsyncVars
+
+  for (( sCount=2; $sCount < $sectionCount; sCount++ ))
+  do
+    # uncomment for troubleshooting
+    # echo "---"
+    # echo scount: $sCount
+    # echo section: ${SectionList[$sCount]}
+    # echo "---"
+
+    forSource="INI__${SectionList[$sCount]}__localSource"
+    forDestination="INI__${SectionList[$sCount]}__remoteDestination"
+    # uncomment for troubleshooting
+    #echo ${!forSource}
+    #echo ${!forDestination}
+    rsyncUP ${!forSource} ${!forDestination}
+
+  done
+
+
+}
+
 rsyncConnection() {
   echo "Testing connection to ${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}..."
   ssh ${INI__server__rsyncSERVER} -l ${INI__server__rsyncUSER} -T ls > /dev/null
 }
 
 rsyncUP() {
-# rsync up with specific key
+# rsync given local to remote paths
     echo =============================================================
-    echo -e "Start rsync to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}\n${INI__server__rsyncSSHKEY}"
-    rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile ${INI__defaultBackup__localSource}/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"${INI__defaultBackup__remoteDestination}"
+    echo -e "Start rsync of $1 to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}:/$2\n${INI__server__rsyncSSHKEY}"
+    rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile $1/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"$2"
     echo =============================================================
 }
 
@@ -152,7 +190,7 @@ else
 fi
 
 #Rsync it up.
-rsyncUP
+sectionRsync
 
 # size it
 rsyncQuota

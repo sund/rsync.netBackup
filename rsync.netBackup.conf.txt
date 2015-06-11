@@ -16,6 +16,8 @@ checkQuota="1"
 
 ###
 ## Set backup folder (local and remote pairs) and other settings here.
+## for multiple source:remote pairs, create a new [section]
+## See https://github.com/sund/rsync.netBackup/wiki
 #
 [defaultBackup]
 remoteDestination="path/to/remote/folder"
