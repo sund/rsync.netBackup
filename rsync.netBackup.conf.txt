@@ -1,17 +1,22 @@
 ###
 ## Set account, remote server, and ssh key location
 #
-rsyncUSER=""
-rsyncSERVER=""
+[server]
+rsyncUSER="8326"
+rsyncSERVER="usw-s008.rsync.net"
 rsyncSSHKEY=""
 
 ###
 ## global options
 #
-checkQuota="0" # print quota report after all is done. 1 is enabled
+# checkQuota="1" # print quota report after all is done. 1 is enabled
+
+[global]
+checkQuota="1"
 
 ###
 ## Set backup folder (local and remote pairs) and other settings here.
 #
-remoteDestination=""
-localSource=""
+[defaultBackup]
+remoteDestination="path/to/remote/folder"
+localSource="full/path/to/local/folder"
