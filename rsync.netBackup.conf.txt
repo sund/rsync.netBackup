@@ -10,9 +10,11 @@ rsyncSSHKEY=""
 ## global options
 #
 # checkQuota="1" # print quota report after all is done. 1 is enabled
+# enableDebug="1" # enable debugging. 1 is enabled
 
 [global]
 checkQuota="1"
+enableDebug="0"
 
 ###
 ## Set backup folder (local and remote pairs) and other settings here.
