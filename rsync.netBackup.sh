@@ -35,16 +35,71 @@ checkSize() {
     echo
 }
 
+sectionRsyncVars() {
+  echo Section list as string: ${SectionList[@]}
+  echo Total Sections: $sectionCount
+  while [ "$index" -lt "$sectionCount" ]; do
+    echo -e "index: $index\tvalue: ${SectionList[$index]}"
+    let "index++"
+  done
+  echo "---"
+}
+
+sectionRsync() {
+  SectionList=(`echo ${INI__ALL_SECTIONS}`)
+  sectionCount=${#SectionList[@]}
+  index=0
+
+  # for troubleshooting
+  if [[ ${INI__global__enableDebug} == "true" || ${INI__global__enableDebug} = 1 ]]
+	then
+    sectionRsyncVars
+  fi
+
+  for (( sCount=2; $sCount < $sectionCount; sCount++ ))
+  do
+
+    if [[ ${INI__global__enableDebug} == "true" || ${INI__global__enableDebug} = 1 ]]
+  	then
+      # for troubleshooting
+      echo "---"
+      echo scount: $sCount
+      echo section: ${SectionList[$sCount]}
+      echo "---"
+    fi
+
+    forSource="INI__${SectionList[$sCount]}__localSource"
+    forDestination="INI__${SectionList[$sCount]}__remoteDestination"
+
+    if [[ ${INI__global__enableDebug} == "true" || ${INI__global__enableDebug} = 1 ]]
+  	then
+      # for troubleshooting
+      echo ${!forSource}
+      echo ${!forDestination}
+    fi
+
+    echo =============================================================
+    echo "Starting rsync for section: ${SectionList[$sCount]}"
+    rsyncUP ${!forSource} ${!forDestination}
+
+  done
+
+
+}
+
 rsyncConnection() {
-  echo "Testing connection to ${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}..."
+  echo -e "Testing connection to ${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}..."
   ssh ${INI__server__rsyncSERVER} -l ${INI__server__rsyncUSER} -T ls > /dev/null
+  if [ $? == 0 ]
+    then
+    echo "  [SUCCESS]"
+  fi
 }
 
 rsyncUP() {
-# rsync up with specific key
-    echo =============================================================
-    echo -e "Start rsync to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}\n${INI__server__rsyncSSHKEY}"
-    rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile ${INI__defaultBackup__localSource}/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"${INI__defaultBackup__remoteDestination}"
+# rsync given local to remote paths
+    echo -e "Start rsync of $1 to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}:/$2\n${INI__server__rsyncSSHKEY}"
+    rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile $1/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"$2"
     echo =============================================================
 }
 
@@ -122,8 +177,13 @@ if [ -e $confFile -a -r $confFile ]
 then
   echo "Parsing config file..."
   read_ini "$confFile"
+
   ## for debugging purposes
-  printVars
+  if [[ ${INI__global__enableDebug} == "true" || ${INI__global__enableDebug} = 1 ]]
+	then
+    printVars
+  fi
+
 else
 	echo "No config file found; Please create a config file."
   echo "See https://github.com/sund/rsync.netBackup/wiki/Configuration"
@@ -152,7 +212,7 @@ else
 fi
 
 #Rsync it up.
-rsyncUP
+sectionRsync
 
 # size it
 rsyncQuota
@@ -164,6 +224,9 @@ printScriptver
 ## Exit gracefully
 #
 ## for debugging purposes
-timeTrap
+if [[ ${INI__global__enableDebug} == "true" || ${INI__global__enableDebug} = 1 ]]
+then
+  timeTrap
+fi
 
 exit 0
