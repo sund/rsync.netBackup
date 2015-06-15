@@ -22,6 +22,7 @@ OSNAME=`uname -s` #
 PDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 confFile="$PDIR/rsync.netBackup.conf"
 excludeFile="$PDIR/excludeFiles.txt"
+LCK_FILE=$PDIR/`basename $0`.lck
 
 #source read_ini.sh
 . $PDIR/read_ini.sh
@@ -29,6 +30,33 @@ excludeFile="$PDIR/excludeFiles.txt"
 ###
 ## Functions
 #
+
+checkStatus () {
+# if this function sees this script already running, then exit.
+# checks for a stuck process.
+if [ -f "${LCK_FILE}" ]; then
+
+  # The file exists so read the PID to see if it is still running
+  MYPID=`head -n 1 "${LCK_FILE}"`
+
+  TEST_RUNNING=`ps -p ${MYPID} | grep ${MYPID}`
+
+  if [ -z "${TEST_RUNNING}" ]; then
+    # The process is not running
+    # Echo current PID into lock file
+    echo "No running process. Starting..."
+    echo $$ > "${LCK_FILE}"
+  else
+    echo "`basename $0` is already running [${MYPID}]"
+    exit 0
+  fi
+
+else
+  echo "Not running. Starting..."
+  echo $$ > "${LCK_FILE}"
+fi
+
+}
 
 checkSize() {
     echo ===== Sizing =====
@@ -169,6 +197,9 @@ timeTrap() {
 ## Git'r done
 #
 
+# check to see if we are already running
+checkStatus
+
 # what type/kind of host are we on
 determineOS
 
@@ -219,6 +250,9 @@ rsyncQuota
 
 # Print version
 printScriptver
+
+# remove lock file
+rm -f "${LCK_FILE}"
 
 ###
 ## Exit gracefully
