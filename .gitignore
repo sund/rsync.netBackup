@@ -1,5 +1,6 @@
 ## files that shouldn't be synced
 rsync.netBackup.conf
 *~
+*.lck
 
 .DS_Store
