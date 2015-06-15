@@ -24,7 +24,7 @@ confFile="$PDIR/rsync.netBackup.conf"
 excludeFile="$PDIR/excludeFiles.txt"
 
 #source read_ini.sh
-. read_ini.sh
+. $PDIR/read_ini.sh
 
 ###
 ## Functions
