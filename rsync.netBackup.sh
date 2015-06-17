@@ -108,7 +108,7 @@ sectionRsync() {
 
     echo =============================================================
     echo "Starting rsync for section: ${SectionList[$sCount]}"
-    rsyncUP ${!forSource} ${!forDestination}
+    rsyncUP "${!forSource}" "${!forDestination}"
 
   done
 
@@ -127,7 +127,7 @@ rsyncConnection() {
 rsyncUP() {
 # rsync given local to remote paths
     echo -e "Start rsync of $1 to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}:/$2\n${INI__server__rsyncSSHKEY}"
-    rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile $1/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"$2"
+    rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile "$1"/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"$2"
     echo =============================================================
 }
 
