@@ -127,7 +127,7 @@ rsyncConnection() {
 
 rsyncUP() {
 # rsync given local to remote paths
-      echo -e "Start rsync ($3) of $1 to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}:/$2\n${INI__server__rsyncSSHKEY}"
+      echo -e "Start rsync ($3) of $1 to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}:$2\n${INI__server__rsyncSSHKEY}"
 
     if [[ $3 == "mirror" ]]
       then
