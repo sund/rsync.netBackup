@@ -20,7 +20,9 @@ enableDebug="0"
 ## Set backup folder (local and remote pairs) and other settings here.
 ## for multiple source:remote pairs, create a new [section]
 ## See https://github.com/sund/rsync.netBackup/wiki
+## backupsTypes are "copy" (default) or "mirror"
 #
 [defaultBackup]
+backupType="copy"
 remoteDestination="path/to/remote/folder"
 localSource="full/path/to/local/folder"

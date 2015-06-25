@@ -98,6 +98,7 @@ sectionRsync() {
 
     forSource="INI__${SectionList[$sCount]}__localSource"
     forDestination="INI__${SectionList[$sCount]}__remoteDestination"
+    forbackupType="INI__${SectionList[$sCount]}__backupType"
 
     if [[ ${INI__global__enableDebug} == "true" || ${INI__global__enableDebug} = 1 ]]
   	then
@@ -108,7 +109,7 @@ sectionRsync() {
 
     echo =============================================================
     echo "Starting rsync for section: ${SectionList[$sCount]}"
-    rsyncUP "${!forSource}" "${!forDestination}"
+    rsyncUP "${!forSource}" "${!forDestination}" "${!forbackupType}"
 
   done
 
@@ -126,8 +127,16 @@ rsyncConnection() {
 
 rsyncUP() {
 # rsync given local to remote paths
-    echo -e "Start rsync of $1 to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}:/$2\n${INI__server__rsyncSSHKEY}"
-    rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile "$1"/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"$2"
+      echo -e "Start rsync ($3) of $1 to \n${INI__server__rsyncUSER}@${INI__server__rsyncSERVER}:/$2\n${INI__server__rsyncSSHKEY}"
+
+    if [[ $3 == "mirror" ]]
+      then
+      #mirror
+      rsync -raz --verbose ${sshKeyUsage} --delete-after --exclude-from=$excludeFile "$1"/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"$2"
+    else
+      #copy (default)
+      rsync -raz --verbose ${sshKeyUsage} --exclude-from=$excludeFile "$1"/ "${INI__server__rsyncUSER}"@"${INI__server__rsyncSERVER}":"$2"
+    fi
     echo =============================================================
 }
 
